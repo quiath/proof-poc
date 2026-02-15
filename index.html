@@ -1,7 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="coi-serviceworker.js"></script>
+    <!--script src="coi-serviceworker.js"></script-->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./coi-serviceworker.js')
+                .then((reg) => {
+                    console.log('SW Registered');
+                    // Check if the worker is actually in control
+                    if (reg.active && !window.crossOriginIsolated) {
+                        // Worker is there but page isn't isolated yet: reload!
+                        window.location.reload();
+                    }
+                });
+        }
+    </script>    
+
     <script src="z3-wrapper.js"></script>
     <script src="z3-built.js"></script>
 </head>
