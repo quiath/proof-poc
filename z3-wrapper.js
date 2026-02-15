@@ -5237,7 +5237,7 @@
                 for (let i = 0; i < a.numEntries(); i++) {
                   const e = a.entry(i);
                   const n = e.numArgs();
-                  const args = global.Array(n).map((_, i2) => e.argValue(i2));
+                  const args = window.Array(n).map((_, i2) => e.argValue(i2));
                   funcInterp.addEntry(args, e.value());
                 }
                 return;
@@ -7197,7 +7197,7 @@
       __exportStar2(require_types(), exports);
       __exportStar2(require_types_GENERATED(), exports);
       async function init2() {
-        const initZ3 = global.initZ3;
+        const initZ3 = window.initZ3;
         if (initZ3 === void 0) {
           throw new Error("initZ3 was not imported correctly. Please consult documentation on how to load Z3 in browser");
         }
