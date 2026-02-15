@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="coi-serviceworker.js"></script>
+    <script src="z3-wrapper.js"></script>
+    <script src="z3-built.js"></script>
+</head>
+<body>
+    <h1>Z3 Solver Proof: 1 + 1 = 2</h1>
+    <div id="output">Loading Z3...</div>
+
+    <script>
+        async function run() {
+            const out = document.getElementById('output');
+            try {
+                const { Context } = await window.Z3.init();
+                const { Solver, Int, Eq, Not } = new Context('main');
+                const s = new Solver();
+                
+                // Assertion: 1 + 1 != 2
+                s.add(Not(Eq(Int.val(1).add(Int.val(1)), Int.val(2))));
+                
+                const result = await s.check();
+                out.innerText = "Z3 Result: " + result + " (UNSAT means proof is successful!)";
+            } catch (e) {
+                out.innerText = "Initialization Error: " + e.message;
+                console.error(e);
+            }
+        }
+        run();
+    </script>
+</body>
+</html>
