@@ -29,7 +29,7 @@ jobs:
 
           # 2. Create the Z3 Bundle Wrapper
           echo "import { init } from 'z3-solver'; window.Z3 = { init };" > entry.js
-          npx esbuild entry.js --bundle --outfile=z3-wrapper.js --format=iife
+          npx esbuild entry.js --bundle --outfile=z3-wrapper.js --format=iife --define:global=window
 
           # 3. Generate the COI Service Worker (Crucial for GH Pages)
           cat <<EOF > coi-serviceworker.js
