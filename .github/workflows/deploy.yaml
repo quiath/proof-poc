@@ -1,0 +1,65 @@
+name: Build and Deploy Z3 to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Build Assets
+        run: |
+          # 1. Install necessary packages
+          npm init -y
+          npm install z3-solver esbuild
+
+          # 2. Create the Z3 Bundle Wrapper
+          echo "import { init } from 'z3-solver'; window.Z3 = { init };" > entry.js
+          npx esbuild entry.js --bundle --outfile=z3-wrapper.js --format=iife
+
+          # 3. Generate the COI Service Worker (Crucial for GH Pages)
+          cat <<EOF > coi-serviceworker.js
+          if (typeof window === 'undefined') {
+              self.addEventListener("install", () => self.skipWaiting());
+              self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+              self.onfetch = (event) => {
+                  if (event.request.cache === "only-if-cached" && event.request.mode !== "same-origin") return;
+                  event.respondWith(
+                      fetch(event.request).then((response) => {
+                          if (response.status === 0) return response;
+                          const newHeaders = new Headers(response.headers);
+                          newHeaders.set("Cross-Origin-Embedder-Policy", "require-corp");
+                          newHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
+                          return new Response(response.body, { status: response.status, statusText: response.statusText, headers: newHeaders });
+                      })
+                  );
+              };
+          }
+          EOF
+
+          # 4. Extract Z3 WASM files from node_modules
+          cp node_modules/z3-solver/build/z3-built.* .
+
+          # 5. Cleanup build artifacts so only the website files remain
+          rm -rf node_modules package.json package-lock.json entry.js
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: . 
+          branch: gh-pages
+
